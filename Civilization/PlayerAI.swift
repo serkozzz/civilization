@@ -9,7 +9,7 @@ import Foundation
 
 
 
-class PlayerAI {
+nonisolated final class PlayerAI {
     var secondsBetweenMoves: TimeInterval
     var player: Player
     var arenaActor: ArenaActor
@@ -22,6 +22,7 @@ class PlayerAI {
         self.secondsBetweenMoves = secondsBetweenMoves
     }
     
+    @concurrent
     func start() async throws {
 
             while true {

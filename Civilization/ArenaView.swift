@@ -22,7 +22,7 @@ struct ArenaView: View {
             }
         }
         .task {
-           await viewModel.observe()
+            viewModel.observe()
         }
     }
 }

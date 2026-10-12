@@ -20,7 +20,7 @@ struct PackmanMovementApp: App {
 
         let firstSnaphot = PackmanMovementApp.createFirstSnapshot(arenaConf: arenaConfiguration)
         
-        arenaActor = ArenaActor(arenaSnapshot: firstSnaphot, arenaConfiguration: arenaConfiguration)
+        arenaActor = ArenaActor(initialSnapshot: firstSnaphot, arenaConfiguration: arenaConfiguration)
         
         playerAIs = []
         for i in 0..<firstSnaphot.players.count {
@@ -50,7 +50,7 @@ struct PackmanMovementApp: App {
     
     private static func createFirstSnapshot(arenaConf: ArenaConfiguration) -> ArenaSnapshot {
         let foodItemsNumber = 525
-        let playersNumber = 1000
+        let playersNumber = 10000
         
         var foodItems = [Food]()
         for _ in 0..<foodItemsNumber {
