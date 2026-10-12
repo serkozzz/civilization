@@ -26,7 +26,7 @@ struct PackmanMovementApp: App {
         for i in 0..<firstSnaphot.players.count {
             let playerAI = PlayerAI(player: firstSnaphot.players[i],
                                 arenaActor: arenaActor,
-                                secondsBetweenMoves: Double.random(in: 0.01...0.1))
+                                secondsBetweenMoves: Double.random(in: 0.03...0.1))
             playerAIs.append(playerAI)
         }
         arenaVM = ArenaViewModel(arenaActor: arenaActor, arenaConfiguration: arenaConfiguration)
@@ -49,7 +49,7 @@ struct PackmanMovementApp: App {
     
     private static func createFirstSnapshot(arenaConf: ArenaConfiguration) -> ArenaSnapshot {
         let foodItemsNumber = 525
-        let playersNumber = 10000
+        let playersNumber = 1000
         
         var foodItems = [Food]()
         for _ in 0..<foodItemsNumber {
@@ -62,7 +62,7 @@ struct PackmanMovementApp: App {
         for _ in 0..<playersNumber {
             let x = arenaConf.width * Double.random(in: 0...1)
             let y = arenaConf.height * Double.random(in: 0...1)
-            let player = Player(coord: CGPoint(x: x, y: y), speed:Double.random(in: 0.5...1))
+            let player = Player(coord: CGPoint(x: x, y: y), speed:Double.random(in: 0.5...2))
             players.append(player)
         }
         
