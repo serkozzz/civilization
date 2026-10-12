@@ -36,7 +36,6 @@ struct PackmanMovementApp: App {
         WindowGroup {
             ContentView(arenaActor: arenaActor, arenaVM: arenaVM, arenaConfiguration: arenaConfiguration)
                 .task {
-                    print("App withTaskGroup")
                     await withTaskGroup() { group in
                         for playerAI in playerAIs {
                             group.addTask {

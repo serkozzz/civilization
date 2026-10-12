@@ -12,14 +12,28 @@ struct ArenaView: View {
 
     var body: some View {
         
-        GeometryReader { geo in
-            if let snapshot = viewModel.arenaSnapshot {
-                ForEach(snapshot.players) { player in
-                    let side = sqrt(player.size)
-                    Rectangle().frame(width: side, height: side)
-                        .position(viewModel.toScreenSpace(coord: player.coord, geoSize: geo.size))
-                }
+        Canvas { context, size in
+            guard let snapshot = viewModel.arenaSnapshot else { return }
+
+            let scaleX = size.width / viewModel.arenaConfiguration.width
+            let scaleY = size.height / viewModel.arenaConfiguration.height
+            var path = Path()
+
+            for player in snapshot.players {
+                let side = sqrt(player.size)
+                let point = CGPoint(
+                    x: player.coord.x * scaleX,
+                    y: player.coord.y * scaleY
+                )
+                let rect = CGRect(
+                    x: point.x - side / 2,
+                    y: point.y - side / 2,
+                    width: side,
+                    height: side
+                )
+                path.addRect(rect)
             }
+            context.fill(path, with: .color(.primary))
         }
         .task {
             viewModel.observe()

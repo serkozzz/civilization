@@ -13,15 +13,14 @@ actor ArenaActor {
     private var arenaConfiguration: ArenaConfiguration
     
     private var indexById: [UUID: Int]?
-    
+
     init(initialSnapshot: ArenaSnapshot, arenaConfiguration: ArenaConfiguration) {
         self.arenaSnapshot = initialSnapshot
         self.arenaConfiguration = arenaConfiguration
-        if indexById == nil {  createIndex() }
     }
     
     func tryMove(player: Player, direction: Direction) {
-        
+        if indexById == nil {  createIndex() }
         let idx = indexById![player.id]!
         var tempPlayer = arenaSnapshot.players[idx]
         switch direction {

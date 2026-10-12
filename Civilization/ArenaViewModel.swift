@@ -28,7 +28,7 @@ class ArenaViewModel: ObservableObject {
             while true {
                 try Task.checkCancellation()
                 arenaSnapshot = await arenaActor.arenaSnapshot
-                try await Task.sleep(for: .seconds(1/60))
+                try await Task.sleep(for: .seconds(1.0/60.0))
             }
         }
     }

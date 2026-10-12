@@ -29,6 +29,8 @@ nonisolated final class PlayerAI {
                 await makeTurn()
                 try await Task.sleep(for: .seconds(secondsBetweenMoves))
                 try Task.checkCancellation()
+                
+
             }
   
     }
