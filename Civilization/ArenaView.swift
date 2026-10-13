@@ -20,7 +20,7 @@ struct ArenaView: View {
             var path = Path()
 
             for player in snapshot.players {
-                let side = sqrt(player.size)
+                let side = player.side
                 let point = CGPoint(
                     x: player.coord.x * scaleX,
                     y: player.coord.y * scaleY
@@ -34,6 +34,23 @@ struct ArenaView: View {
                 path.addRect(rect)
             }
             context.fill(path, with: .color(.primary))
+            
+            var foodPath = Path()
+            for foodItem in snapshot.food {
+                let side = foodItem.side
+                let point = CGPoint(
+                    x: foodItem.coord.x * scaleX,
+                    y: foodItem.coord.y * scaleY
+                )
+                let rect = CGRect(
+                    x: point.x - side / 2,
+                    y: point.y - side / 2,
+                    width: side,
+                    height: side
+                )
+                foodPath.addRect(rect)
+            }
+            context.fill(foodPath, with: .color(.yellow))
         }
         .task {
             viewModel.observe()

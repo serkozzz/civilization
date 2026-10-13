@@ -9,11 +9,13 @@ import Foundation
 import Combine
 
 
-
-struct Player: Equatable, Identifiable {
+nonisolated
+struct Player: ArenaObject, Equatable, Identifiable {
+    
     var coord: CGPoint
+    var size: CGFloat = 9
+    
     private(set) var speed: Double
-    var size: Double = 9
     
     init(coord: CGPoint, speed: Double) {
         self.coord = coord

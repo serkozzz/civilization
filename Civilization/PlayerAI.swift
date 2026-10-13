@@ -26,17 +26,17 @@ nonisolated final class PlayerAI {
     func start() async throws {
 
             while true {
-                await makeTurn()
+                try await makeTurn()
                 try await Task.sleep(for: .seconds(secondsBetweenMoves))
                 try Task.checkCancellation()
-                
-
             }
   
     }
     
-    private func makeTurn() async {
-        await arenaActor.tryMove(player: player, direction: Direction.random)
+    private func makeTurn() async throws {
+        let moveResult = await arenaActor.tryMove(player, direction: Direction.random)
+        if moveResult == .removed {
+            throw CancellationError()
+        }
     }
-    
 }
