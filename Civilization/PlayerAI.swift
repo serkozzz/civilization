@@ -34,25 +34,44 @@ nonisolated final class PlayerAI {
     }
     
     private func makeTurn() async throws {
-        let player = await arenaActor.arenaSnapshot.players[playerID]
-        let scanningResult = await arenaActor.scanArea(for: player)
+        guard let scanningResult = await arenaActor.scanArea(for: playerID) else {  return }
         let nearestEnemy = nearestEnemy(from: scanningResult.enemies)
         let nearestFood = nearestFood(from: scanningResult.food)
         
-        let moveResult = await arenaActor.tryMove(player, direction: Direction.random)
-        if moveResult == .removed {
-            throw CancellationError()
+        guard let player = await arenaActor.player(by: playerID) else { return }
+        if let nearestEnemy  {
+            let estimatedSide = nearestEnemy.sideEstimation.estimatedSide
+            let vectorToMove = (estimatedSide > player.side) ? -nearestEnemy.distanceVector : nearestEnemy.distanceVector
+            let direction = direction(from: vectorToMove )
+            let _ = await arenaActor.tryMove(playerID, direction: direction)
+        }
+        else {
+            let _ = await arenaActor.tryMove(playerID, direction: Direction.random)
         }
     }
     
+    /// Converts a vector to a cardinal direction. Ties prefer the horizontal axis.
+    /// Arena coordinates increase downward along the Y axis.
+    func direction(from vector: CGVector) -> Direction {
+        guard vector.dx.isFinite, vector.dy.isFinite,
+              vector.dx != 0 || vector.dy != 0 else {
+            return .right
+        }
+
+        if abs(vector.dx) >= abs(vector.dy) {
+            return vector.dx > 0 ? .right : .left
+        }
+        return vector.dy > 0 ? .down : .up
+    }
+
     private func nearestEnemy(from enemies: [ScannedEnemy]) -> ScannedEnemy? {
         var nearestEnemy: ScannedEnemy?
         var minDistance = CGFloat.infinity
         for enemy in enemies {
-            let distance = enemy.distanceVector.magnitude
-            if distance <= player.side  {
+            if enemy.id == playerID {
                 continue
             }
+            let distance = enemy.distanceVector.magnitude
             if distance < minDistance {
                 nearestEnemy = enemy
                 minDistance = distance
@@ -66,9 +85,6 @@ nonisolated final class PlayerAI {
         var minDistance = CGFloat.infinity
         for foodVector in foodVectors {
             let distance = foodVector.magnitude
-            if distance <= player.side  {
-                continue
-            }
             if distance < minDistance {
                 nearestFood = foodVector
                 minDistance = distance

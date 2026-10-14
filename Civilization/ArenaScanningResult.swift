@@ -19,6 +19,7 @@ nonisolated struct SideEstimation: Sendable {
 nonisolated struct ScannedEnemy: Sendable {
     let distanceVector: CGVector
     let sideEstimation: SideEstimation
+    let id: UUID
 }
 
 nonisolated struct ArenaScanningResult: Sendable {

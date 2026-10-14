@@ -41,9 +41,9 @@ nonisolated final class IntersectionDetector {
         }
 
         let enemies = arenaSnaphot.players.filter { isVisible($0) }.map {
-            (vector(to: $0.coord), sideEstimation: SideEstimation(
-                sizeAccuracy: .exact, estimatedSide: $0.side
-            ))
+            ScannedEnemy(distanceVector: vector(to: $0.coord),
+                         sideEstimation: SideEstimation(sizeAccuracy: .exact, estimatedSide: $0.side),
+                         id: $0.id)
         }
         let food = arenaSnaphot.food.filter { isVisible($0) }.map {
             vector(to: $0.coord)

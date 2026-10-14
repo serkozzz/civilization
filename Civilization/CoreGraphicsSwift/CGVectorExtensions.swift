@@ -29,7 +29,7 @@ nonisolated public extension CGVector {
 
 // MARK: - Initializers
 
-public extension CGVector {
+nonisolated public extension CGVector {
     /// SwifterSwift: Creates a vector with the given magnitude and angle.
     ///
     ///     let vector = CGVector(angle: .pi, magnitude: 1)
@@ -51,7 +51,7 @@ public extension CGVector {
 
 // MARK: - Operators
 
-public extension CGVector {
+nonisolated public extension CGVector {
     /// SwifterSwift: Multiplies a scalar and a vector (commutative).
     ///
     ///     let vector = CGVector(dx: 1, dy: 1)

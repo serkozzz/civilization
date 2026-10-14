@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreGraphics
 
 
 nonisolated enum MoveResult: Sendable {
@@ -18,33 +19,51 @@ nonisolated enum MoveResult: Sendable {
 actor ArenaActor {
 
     private(set) var arenaSnapshot: ArenaSnapshot
+    let playersRemovalStream: AsyncStream<UUID>
+    private let playersRemovalContinuation: AsyncStream<UUID>.Continuation
+    
     private var arenaConfiguration: ArenaConfiguration
     
     private var indexById: [UUID: Int]?
-
+    
+    
     init(initialSnapshot: ArenaSnapshot, arenaConfiguration: ArenaConfiguration) {
         self.arenaSnapshot = initialSnapshot
         self.arenaConfiguration = arenaConfiguration
+        
+        (playersRemovalStream, playersRemovalContinuation) = AsyncStream<UUID>.makeStream()
     }
     
-    func scanArea(for playerID: UUID) -> ArenaScanningResult {
+    func player(by:UUID) -> Player? {
+        guard let idx = indexById![by] else { return nil }
+        return arenaSnapshot.players[idx]
+    }
+    
+    func scanArea(for playerID: UUID) -> ArenaScanningResult? {
+        if indexById == nil {  createIndex() }
+        guard let playerIdx = indexById![playerID] else { return nil}
+        
+        let player = arenaSnapshot.players[playerIdx]
+        let scanningAreaSide = player.side + player.vision
+        let halfSide = scanningAreaSide / 2
+        let scanningRect = CGRect(
+            x: player.coord.x - halfSide,
+            y: player.coord.y - halfSide,
+            width: scanningAreaSide,
+            height: scanningAreaSide
+        )
+        return IntersectionDetector.scanArea(
+            arenaSnaphot: arenaSnapshot,
+            scanningRect: scanningRect
+        )
+    }
+    
+    func tryMove(_ playerToMoveID: UUID, direction: Direction) -> MoveResult {
         if indexById == nil {  createIndex() }
         
-        guard let idx = indexById?[playerID] else {
-            return .removed
-        }
-        let player = arenaSnapshot.players[idx]!
-        let scanningAreaSide = player.side + player.vision
-        return IntersectionDetector.scanArea(arenaSnaphot: arenaSnapshot,
-                                      scanningRect: CGRect(origin: player.coord,
-                                                           size: CGSize(width: scanningAreaSide, height: scanningAreaSide)))
-    }
-    
-    func tryMove(_ playerToMove: Player, direction: Direction) -> MoveResult {
-        if indexById == nil {  createIndex() }
-        guard let playerToMoveIdx = indexById?[playerToMove.id] else {
-            return .removed
-        }
+        guard let playerToMoveIdx = indexById![playerToMoveID] else { return .removed}
+        let playerToMove = arenaSnapshot.players[playerToMoveIdx]
+        
         var tempPlayer = arenaSnapshot.players[playerToMoveIdx]
         switch direction {
         case .up:
@@ -57,9 +76,6 @@ actor ArenaActor {
             move(player: &tempPlayer, dx: playerToMove.speed, dy: 0)
         }
         
-        let foodIdxToEat = getIntersectedFoodItemIdx(movingPlayer: tempPlayer)
-        let (indexToRemove, indexToGrow) = checkPlayersIntesection(movingPlayer: tempPlayer)
-        
         if (isPlayerInsideOfArena(tempPlayer)) {
             arenaSnapshot.players[playerToMoveIdx] = tempPlayer
         }
@@ -67,20 +83,29 @@ actor ArenaActor {
             return .blocked
         }
         
-        
-        if let foodIdxToEat {
-            tempPlayer.size = arenaSnapshot.food[foodIdxToEat].nutrition
-            arenaSnapshot.food.remove(at: foodIdxToEat)
-        }
+       
+        let (indexToRemove, indexToGrow) = checkPlayersIntesection(movingPlayer: tempPlayer)
         
         if let indexToRemove, let indexToGrow {
-            arenaSnapshot.players[indexToGrow].size += arenaSnapshot.players[indexToRemove].size
+            //fight
+            let playerToRemove = arenaSnapshot.players[indexToRemove]
+            arenaSnapshot.players[indexToGrow].size += playerToRemove.size
             arenaSnapshot.players.remove(at: indexToRemove)
             createIndex()
+            playersRemovalContinuation.yield(playerToRemove.id)
+            if indexToRemove == playerToMoveIdx {
+                return .removed
+            }
         }
-        if indexToRemove == playerToMoveIdx {
-            return .removed
+        else {
+            //eat
+            let foodIdxToEat = getIntersectedFoodItemIdx(movingPlayer: tempPlayer)
+            if let foodIdxToEat {
+                tempPlayer.size = arenaSnapshot.food[foodIdxToEat].nutrition
+                arenaSnapshot.food.remove(at: foodIdxToEat)
+            }
         }
+        
         return .moved
     }
     
@@ -131,5 +156,9 @@ actor ArenaActor {
             let id = arenaSnapshot.players[idx].id
             indexById![id] = idx
         }
+    }
+    
+    deinit {
+        playersRemovalContinuation.finish()
     }
 }

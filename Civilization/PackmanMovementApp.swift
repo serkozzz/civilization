@@ -9,9 +9,8 @@ import SwiftUI
 
 @main
 struct PackmanMovementApp: App {
-    
-    var playerAIs: [PlayerAI]
 
+    var aiSupervisor: AISupervisor
     let arenaActor: ArenaActor
     let arenaVM: ArenaViewModel
     let arenaConfiguration = ArenaConfiguration(width: 800, height: 600)
@@ -22,27 +21,16 @@ struct PackmanMovementApp: App {
         
         arenaActor = ArenaActor(initialSnapshot: firstSnaphot, arenaConfiguration: arenaConfiguration)
         
-        playerAIs = []
-        for i in 0..<firstSnaphot.players.count {
-            let playerAI = PlayerAI(player: firstSnaphot.players[i],
-                                arenaActor: arenaActor,
-                                secondsBetweenMoves: Double.random(in: 0.03...0.1))
-            playerAIs.append(playerAI)
-        }
         arenaVM = ArenaViewModel(arenaActor: arenaActor, arenaConfiguration: arenaConfiguration)
+        aiSupervisor = AISupervisor(arenaActor: arenaActor)
     }
     
     var body: some Scene {
         WindowGroup {
             ContentView(arenaActor: arenaActor, arenaVM: arenaVM, arenaConfiguration: arenaConfiguration)
                 .task {
-                    await withTaskGroup() { group in
-                        for playerAI in playerAIs {
-                            group.addTask {
-                                try? await playerAI.start()
-                            }
-                        }
-                    }
+                    let arenaSnapshot = await arenaActor.arenaSnapshot
+                    aiSupervisor.startAll(arenaSnapshot: arenaSnapshot)
                 }
         }
     }
@@ -64,7 +52,7 @@ struct PackmanMovementApp: App {
             let y = arenaConf.height * Double.random(in: 0...1)
             let player = Player(coord: CGPoint(x: x, y: y),
                                 speed: Double.random(in: 0.5...2),
-                                vision: Double.random(in: 1...5))
+                                vision: Double.random(in: 50...100))
             players.append(player)
         }
         
