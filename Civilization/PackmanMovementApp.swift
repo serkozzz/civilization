@@ -55,14 +55,16 @@ struct PackmanMovementApp: App {
         for _ in 0..<foodItemsNumber {
             let x = arenaConf.width * Double.random(in: 0...1)
             let y = arenaConf.height * Double.random(in: 0...1)
-            foodItems.append(Food(coord: CGPoint(x: x, y: y), size: 2))
+            foodItems.append(Food(coord: CGPoint(x: x, y: y), size: 2, nutrition: 2))
         }
         
         var players = [Player]()
         for _ in 0..<playersNumber {
             let x = arenaConf.width * Double.random(in: 0...1)
             let y = arenaConf.height * Double.random(in: 0...1)
-            let player = Player(coord: CGPoint(x: x, y: y), speed:Double.random(in: 0.5...2))
+            let player = Player(coord: CGPoint(x: x, y: y),
+                                speed: Double.random(in: 0.5...2),
+                                vision: Double.random(in: 1...5))
             players.append(player)
         }
         

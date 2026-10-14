@@ -11,4 +11,5 @@ nonisolated
 struct Food: ArenaObject {
     var coord: CGPoint
     var size: CGFloat
+    var nutrition: CGFloat
 }
