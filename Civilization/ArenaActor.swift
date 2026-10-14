@@ -13,6 +13,7 @@ nonisolated enum MoveResult: Sendable {
     case moved
     case blocked
     case removed
+    case dragging
 }
 
 
@@ -39,11 +40,23 @@ actor ArenaActor {
         return arenaSnapshot.players[idx]
     }
     
+    func setPlayerPosition(playerID: UUID, to: CGPoint) {
+        guard let idx = indexById![playerID] else { return }
+        arenaSnapshot.players[idx].coord = to
+    }
+    
+    func setDragging(playerID: UUID, dragging: Bool) {
+        guard let idx = indexById![playerID] else { return }
+        arenaSnapshot.players[idx].playerMode = dragging ? .dragging : .simulated
+    }
+    
     func scanArea(for playerID: UUID) -> ArenaScanningResult? {
         if indexById == nil {  createIndex() }
         guard let playerIdx = indexById![playerID] else { return nil}
-        
         let player = arenaSnapshot.players[playerIdx]
+        if player.playerMode == .dragging { return nil }
+        
+       
         let scanningAreaSide = player.side + player.vision
         let halfSide = scanningAreaSide / 2
         let scanningRect = CGRect(
@@ -60,9 +73,10 @@ actor ArenaActor {
     
     func tryMove(_ playerToMoveID: UUID, direction: Direction) -> MoveResult {
         if indexById == nil {  createIndex() }
-        
+
         guard let playerToMoveIdx = indexById![playerToMoveID] else { return .removed}
         let playerToMove = arenaSnapshot.players[playerToMoveIdx]
+        if playerToMove.playerMode == .dragging { return .dragging }
         
         var tempPlayer = arenaSnapshot.players[playerToMoveIdx]
         switch direction {
@@ -105,7 +119,6 @@ actor ArenaActor {
                 arenaSnapshot.food.remove(at: foodIdxToEat)
             }
         }
-        
         return .moved
     }
     
@@ -113,6 +126,7 @@ actor ArenaActor {
         var indexToRemove: Int?, indexToGrow: Int?
         for player in arenaSnapshot.players {
             if player.id == movingPlayer.id { continue }
+            if player.playerMode == .dragging { continue }
             let isIntersected = IntersectionDetector.isIntersection(obj1: movingPlayer, obj2: player)
             if (isIntersected) {
                 if movingPlayer.size >= player.size {

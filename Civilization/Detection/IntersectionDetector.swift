@@ -9,6 +9,20 @@ import Foundation
 import CoreGraphics
 
 nonisolated final class IntersectionDetector {
+    /// Returns the first player whose square contains the point in arena coordinates.
+    /// Includes the square boundary; overlapping players follow snapshot array order.
+    static func raycast(_ point: CGPoint, arenaSnapshot: ArenaSnapshot) -> Player? {
+        guard point.x.isFinite, point.y.isFinite else { return nil }
+
+        return arenaSnapshot.players.first { player in
+            let side = player.side
+            guard side.isFinite, side > 0 else { return false }
+            let halfSide = side / 2
+            return abs(point.x - player.coord.x) <= halfSide
+                && abs(point.y - player.coord.y) <= halfSide
+        }
+    }
+
     static func isIntersection(obj1: ArenaObject, obj2: ArenaObject) -> Bool {
         let halfSidesSum = (obj1.side + obj2.side) / 2
         return abs(obj1.coord.x - obj2.coord.x) < halfSidesSum

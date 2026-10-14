@@ -9,7 +9,9 @@ import SwiftUI
 
 struct ArenaView: View {
     @ObservedObject var viewModel: ArenaViewModel
-
+    @State var isFirstDragUpdate = true
+    
+    
     var body: some View {
         
         Canvas { context, size in
@@ -55,5 +57,29 @@ struct ArenaView: View {
         .task {
             viewModel.observe()
         }
+        .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local).onChanged { value in
+            guard let arenaSnapshot = viewModel.arenaSnapshot else { return }
+            
+            if isFirstDragUpdate {
+                if let player = IntersectionDetector.raycast(value.location, arenaSnapshot: arenaSnapshot) {
+                    Task {
+                        await viewModel.setDragging(playerID: player.id, dragging: true)
+                        isFirstDragUpdate = false
+                    }
+                    return
+                }
+            }
+            if let draggedPlayerID = viewModel.draggingPlayerID {
+                Task {
+                    await viewModel.setPlayerPosition(playerID: draggedPlayerID, to: value.location)
+                }
+            }
+        }
+        .onEnded { _ in
+            isFirstDragUpdate = true
+            Task {
+                await viewModel.disableDragging()
+            }
+        })
     }
 }
