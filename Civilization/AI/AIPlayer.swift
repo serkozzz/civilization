@@ -1,5 +1,5 @@
 //
-//  PlayerAI.swift
+//  AIPlayer.swift
 //  PackmanMovement
 //
 //  Created by Sergey Kozlov on 12.10.2026.
@@ -8,8 +8,7 @@
 import Foundation
 
 
-
-nonisolated final class PlayerAI {
+nonisolated final class AIPlayer {
     var secondsBetweenMoves: TimeInterval
     var playerID: UUID
     var arenaActor: ArenaActor

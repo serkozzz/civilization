@@ -26,8 +26,8 @@ struct ArenaView: View {
                     y: player.coord.y * scaleY
                 )
                 let rect = CGRect(
-                    x: point.x - side / 2,
-                    y: point.y - side / 2,
+                    x: point.x - side * scaleX / 2,
+                    y: point.y - side * scaleY / 2,
                     width: side,
                     height: side
                 )

@@ -23,7 +23,7 @@ class AISupervisor {
         assert(tasksMap.isEmpty)
         arenaSnapshot.players.forEach { player in
             let task = Task {
-                let ai = PlayerAI(playerID: player.id,
+                let ai = AIPlayer(playerID: player.id,
                                    arenaActor: arenaActor,
                                    secondsBetweenMoves: Double.random(in: 0.03...0.1))
                 try await ai.start()
